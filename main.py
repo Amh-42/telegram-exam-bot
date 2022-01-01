@@ -1,3 +1,4 @@
+import re
 from typing import Pattern
 from telegram import chat
 from telegram.ext import *
@@ -5,6 +6,7 @@ from telegram import *
 from Token import key
 from mongodb import *
 
+_ADMIN = [7656465465]
 
 _estates = ["_exam_", "_answer_", "_support_", "_courses_"]
 pro_states = "("+")|(".join(_estates)+")"
@@ -71,11 +73,36 @@ def adminHandler(update: Update, context: CallbackContext):
 
 def messageHandler(update: Update, context: CallbackContext):
     if context.user_data.get("current", "") == "_exam_":
-        if update.message.text in db:
-            buttons = [[InlineKeyboardButton("Mid", callback_data="mid"), InlineKeyboardButton(
-                "Final", callback_data="final")]]
+        query = update.message.text
+        exam = {
+            "name" : re.compile(query, re.IGNORECASE)
+        }
+        docu = ExamCollection.find_one(exam,)
+        if docu is None:
+            context.bot.send_message(chat_id = update.effective_chat.id, text = "Sorry We don't have that for now.")
+        else:
+            mid_exams = docu["mid"]
+            final_exams = docu["final"]
+            keyboards = [[]]
+            if len(mid_exams)>len(final_exams):
+                for i in mid_exams:
+                    keyboards.append([InlineKeyboardButton(i,callback_data = i)])
+                s = 0
+                for i in final_exams:
+                    keyboards[s].append(InlineKeyboardButton(i,callback_data = i))
+                    s+=1
+            else:
+                keyboards = [[] for i in range(len(final_exams))]
+                s=0
+                for i in mid_exams:
+                    keyboards[s].append(InlineKeyboardButton(i,callback_data = i))
+                    s+=1
+                s = 0
+                for i in final_exams:
+                    keyboards[s].append(InlineKeyboardButton(i,callback_data = i))
+                    s+=1
             context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(
-                buttons), text="Choose an Option")
+                keyboards), text="Choose an Option")
     elif context.user_data.get("current", "") == "_answer_":
         if update.message.text in ans:
             buttons = [[InlineKeyboardButton("Mid Answer", callback_data="_mid_"), InlineKeyboardButton(
