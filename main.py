@@ -6,7 +6,6 @@ from Token import key
 from mongodb import *
 
 _ADMIN = [712156622]
-_ADMIN2 = [12345]
 _estates = ["_exam_", "_answer_", "_support_", "_courses_"]
 pro_states = "("+")|(".join(_estates)+")"
 
