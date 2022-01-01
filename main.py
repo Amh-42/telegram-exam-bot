@@ -19,7 +19,7 @@ _ANSWER = ["CSE211", "CSE111", "CSE221"]
 def start(update: Update, context: CallbackContext):
 
     # ... If the user is an administrator it takes him to administrator Interface
-    if update.message.chat['id'] in _ADMIN2:
+    if update.message.chat['id'] in _ADMIN:
         # ... This button allows admin to add new exams to the bot
         buttons = [[InlineKeyboardButton("Add Exam", callback_data="_addexam_")], [
             InlineKeyboardButton("Add Users", callback_data="_adduser_")]]
