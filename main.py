@@ -3,13 +3,13 @@ from telegram.ext import *
 from telegram import *
 from Token import key
 
-_ADMIN = 712156622
+_ADMIN = [712156622]
 
 
 def start(update: Update, context: CallbackContext):
 
     # ... If the user is an administrator it takes him to administrator Interface
-    if update.message.chat['id'] == _ADMIN:
+    if update.message.chat['id'] in _ADMIN:
         # ... This button allows admin to add new exams to the bot
         buttons = [[InlineKeyboardButton("Add Exam", callback_data="add")], [
             InlineKeyboardButton("Add Users", callback_data="users")]]
