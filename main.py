@@ -5,6 +5,8 @@ from Token import key
 
 _ADMIN = 712156622
 
+_estates = ["", "", "", ""]
+
 
 def start(update: Update, context: CallbackContext):
 
