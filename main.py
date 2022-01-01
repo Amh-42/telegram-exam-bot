@@ -4,7 +4,7 @@ from telegram.ext import *
 from telegram import *
 from Token import key
 
-_ADMIN = [712156622]
+_ADMIN =[712156622]
 db = ["CSE"]
 
 _estates = ["_mid_", "_final_", "_support_", "_courses_"]
