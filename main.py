@@ -4,22 +4,12 @@ from telegram.ext import *
 from telegram import *
 from Token import key
 
-<<<<<<< HEAD
-_ADMIN = [712156622]
-db = ["CSE1101", "CSE2101"]
-ans = ["CSE111", "CSE211"]
-=======
-_ADMIN =[712156622]
-db = ["CSE"]
->>>>>>> faf32bbcb9a6b909a97013c6ec34ef2ed677a699
 
 _estates = ["_exam_", "_answer_", "_support_", "_courses_"]
 pro_states = "("+")|(".join(_estates)+")"
 
 _estates2 = ["_addexam_", "_adduser_"]
 pro_states2 = "("+")|(".join(_estates2)+")"
-
-_estates = ["", "", "", ""]
 
 
 def start(update: Update, context: CallbackContext):
