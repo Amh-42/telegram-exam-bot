@@ -5,12 +5,15 @@ from telegram import *
 from Token import key
 from mongodb import *
 
-
+_ADMIN = [712156622]
 _estates = ["_exam_", "_answer_", "_support_", "_courses_"]
 pro_states = "("+")|(".join(_estates)+")"
 
 _estates2 = ["_addexam_", "_adduser_"]
 pro_states2 = "("+")|(".join(_estates2)+")"
+
+_EXAM = ["CSE2101", "CSE1101", "CSE2201"]
+_ANSWER = ["CSE211", "CSE111", "CSE221"]
 
 
 def start(update: Update, context: CallbackContext):
@@ -51,7 +54,7 @@ def examHandler(update: Update, context: CallbackContext):
         context.user_data["current"] = text
     elif "_courses_" == text:
         context.bot.send_message(
-            chat_id=update.effective_chat.id, text='''CSE1101\nCSE2101''')
+            chat_id=update.effective_chat.id, text='''CSE1101\nCSE2101\nCSE2201''')
         context.user_data["current"] = text
 
 
@@ -71,13 +74,13 @@ def adminHandler(update: Update, context: CallbackContext):
 
 def messageHandler(update: Update, context: CallbackContext):
     if context.user_data.get("current", "") == "_exam_":
-        if update.message.text in db:
+        if update.message.text in _EXAM:
             buttons = [[InlineKeyboardButton("Mid", callback_data="mid"), InlineKeyboardButton(
                 "Final", callback_data="final")]]
             context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(
                 buttons), text="Choose an Option")
     elif context.user_data.get("current", "") == "_answer_":
-        if update.message.text in ans:
+        if update.message.text in _ANSWER:
             buttons = [[InlineKeyboardButton("Mid Answer", callback_data="_mid_"), InlineKeyboardButton(
                 "Final Answer", callback_data="_final_")]]
             context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(
