@@ -1,9 +1,17 @@
+from typing import Pattern
 from telegram import chat
 from telegram.ext import *
 from telegram import *
 from Token import key
 
-_ADMIN = [712156622]
+_ADMIN = [71215662]
+db = ["CSE"]
+
+_estates = ["_mid_", "_final_", "_support_", "_courses_"]
+pro_states = "("+")|(".join(_estates)+")"
+
+_estates2 = ["_addmid_", "_addfinal_"]
+pro_states2 = "("+")|(".join(_estates2)+")"
 
 
 def start(update: Update, context: CallbackContext):
@@ -30,10 +38,13 @@ def queryHandler(update: Update, context: CallbackContext):
     query = update.callback_query.data
     update.callback_query.answer()
     if 'exam' in query:
-        buttons = [[InlineKeyboardButton("Mid", callback_data="mid"), InlineKeyboardButton(
-            "Final", callback_data="final")]]
-        update.callback_query.edit_message_text(
-            reply_markup=InlineKeyboardMarkup(buttons), text="Choose an Option")
+        context.bot.send_message(
+            chat_id=update.effective_chat.id, text="Enter Course Code")
+        context.user_data["current"] = "exam"
+        # buttons = [[InlineKeyboardButton("Mid", callback_data="mid"), InlineKeyboardButton(
+        #     "Final", callback_data="final")]]
+        # update.callback_query.edit_message_text(
+        #     reply_markup=InlineKeyboardMarkup(buttons), text="Choose an Option")
     elif 'answer' in query:
         buttons = [[InlineKeyboardButton("Mid", callback_data="mid"), InlineKeyboardButton(
             "Final", callback_data="final")]]
@@ -71,12 +82,22 @@ def queryHandler(update: Update, context: CallbackContext):
             chat_id=update.effective_chat.id, text="Enter the Course codfhee")
 
 
+def messageHandler(update: Update, context: CallbackContext):
+    if context.user_data.get("current", "") == "exam":
+        if update.message.text in db:
+            buttons = [[InlineKeyboardButton("Mid", callback_data="mid"), InlineKeyboardButton(
+                "Final", callback_data="final")]]
+            context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(
+                buttons), text="Choose an Option")
+
+
 def main():
     updater = Updater(key)
     dispatcher = updater.dispatcher
     updater.start_polling()
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(queryHandler))
+    # dispatcher.add_handler(CallbackQueryHandler(examHandler), pattern=pro_states)
 
 
 if __name__ == '__main__':
