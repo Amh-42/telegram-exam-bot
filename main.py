@@ -6,7 +6,7 @@ from telegram import *
 from Token import key
 from mongodb import *
 
-_ADMIN = [712156622]
+_ADMIN = [712156622, 987644664]
 _estates = ["_exam_", "_answer_", "_support_", "_courses_"]
 pro_states = "("+")|(".join(_estates)+")"
 
@@ -23,7 +23,7 @@ def start(update: Update, context: CallbackContext):
     if update.message.chat['id'] in _ADMIN:
         # ... This button allows admin to add new exams to the bot
         buttons = [[InlineKeyboardButton("Add Exam", callback_data="_addexam_")], [
-            InlineKeyboardButton("Add Users", callback_data="_adduser_")]]
+            InlineKeyboardButton("Add Answer", callback_data="_addanswer_")]]
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  reply_markup=InlineKeyboardMarkup(buttons), text="Choose an Option")
 
@@ -65,11 +65,11 @@ def adminHandler(update: Update, context: CallbackContext):
     text = query.data
     if "_addexam_" == text:
         context.bot.send_message(
-            chat_id=update.effective_chat.id, text="add Exam")
+            chat_id=update.effective_chat.id, text="Enter Course Code")
         context.user_data["current"] = text
-    elif "_adduser_" == text:
+    elif "_addanswer_" == text:
         context.bot.send_message(
-            chat_id=update.effective_chat.id, text="add User")
+            chat_id=update.effective_chat.id, text="Add Answer")
         context.user_data["current"] = text
 
 
@@ -77,46 +77,79 @@ def messageHandler(update: Update, context: CallbackContext):
     if context.user_data.get("current", "") == "_exam_":
         query = update.message.text
         exam = {
-            "name" : re.compile(query, re.IGNORECASE)
+            "name": re.compile(query, re.IGNORECASE)
         }
         docu = ExamCollection.find_one(exam,)
         if docu is None:
-            context.bot.send_message(chat_id = update.effective_chat.id, text = "Sorry We don't have that for now.")
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="Sorry We don't have that for now.")
         else:
             mid_exams = docu["mid"]
             final_exams = docu["final"]
             keyboards = [[]]
-            if len(mid_exams)>len(final_exams):
+            if len(mid_exams) > len(final_exams):
                 for i in mid_exams:
-                    keyboards.append([InlineKeyboardButton(i,callback_data = i)])
+                    keyboards.append(
+                        [InlineKeyboardButton(i, callback_data=i)])
                 s = 0
                 for i in final_exams:
-                    keyboards[s].append(InlineKeyboardButton(i,callback_data = i))
-                    s+=1
+                    keyboards[s].append(
+                        InlineKeyboardButton(i, callback_data=i))
+                    s += 1
             else:
                 keyboards = [[] for i in range(len(final_exams))]
-                s=0
+                s = 0
                 for i in mid_exams:
-                    keyboards[s].append(InlineKeyboardButton(i,callback_data = i))
-                    s+=1
+                    keyboards[s].append(
+                        InlineKeyboardButton(i, callback_data=i))
+                    s += 1
                 s = 0
                 for i in final_exams:
-                    keyboards[s].append(InlineKeyboardButton(i,callback_data = i))
-                    s+=1
+                    keyboards[s].append(
+                        InlineKeyboardButton(i, callback_data=i))
+                    s += 1
             context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(
                 keyboards), text="Choose an Option")
     elif context.user_data.get("current", "") == "_answer_":
-        if update.message.text in _ANSWER:
-            buttons = [[InlineKeyboardButton("Mid Answer", callback_data="_mid_"), InlineKeyboardButton(
-                "Final Answer", callback_data="_final_")]]
-            context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(
-                buttons), text="Choose an Option")
+        images = ExamCollection.find_one({"name": update.message.text})
+        if len(images) == 0:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="Sorry We dont have that at the moment")
+        else:
+            context.bot.send_photo(
+                chat_id=update.effective_chat.id, photo=images["mid"]["mid1"])
+
+    elif context.user_data.get("current", "") == "_addexam_":
+        context.user_data["previous"] = update.message.text
+        myQuery = {"name": context.user_data.get("previous", "")}
+        get = ExamCollection.find(myQuery)
+        if get is not None:
+            print("There is nothing to do")
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="Send me your image or file")
+    else:
+        context.bot.send_photo(
+            chat_id=update.effective_chat.id, photo='AgACAgQAAxkBAAIDhGHRS8GPAR7whggfCB2vt34ZfYBJAALRtjEbOfKIUlQh7fK6C7QhAQADAgADcwADIwQ')
+
+
+def imageHandler(update: Update, context: CallbackContext):
+    if context.user_data.get("current", "") == "_addexam_":
+        print("This is Adding Exam")
+        di = {"name": context.user_data.get("previous", ""), "mid": {
+            "mid1": update.message.photo[0]['file_id']
+        },
+            "final": None}
+        ExamCollection.insert_one(di)
+    elif context.user_data.get("current", "") == "_addanswer_":
+        pass
 
 
 def main():
     updater = Updater(key)
     dispatcher = updater.dispatcher
     updater.start_polling()
+
     dispatcher.add_handler(CommandHandler("start", start))
     # dispatcher.add_handler(CallbackQueryHandler(queryHandler))
     dispatcher.add_handler(CallbackQueryHandler(
@@ -124,6 +157,7 @@ def main():
     dispatcher.add_handler(CallbackQueryHandler(
         adminHandler, pattern=pro_states2))
     dispatcher.add_handler(MessageHandler(Filters.text, messageHandler))
+    dispatcher.add_handler(MessageHandler(Filters.photo, imageHandler))
 
 
 if __name__ == '__main__':
